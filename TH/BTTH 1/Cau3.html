@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculate</title>
+    <style>
+        form {
+            width: 300px;
+            padding: 5px;
+            margin: auto;
+            background-color: #a6d8e7;
+        }
+        td{
+            padding: 10px;
+        }
+        h3 {
+            text-align: center;
+            margin: 10px;
+        }
+        
+    </style>
+</head>
+<body>
+    <form action="">
+        <table>
+            <tr align="center">
+                <h3>Máy tính</h3>
+            </tr>
+            <tr>
+                <td><label for="number1">Số thứ nhất</label></td>
+                <td><input type="number" id="number1"></td>
+            </tr>
+            <tr>
+                <td><label for="number2">Số thứ hai</label></td>
+                <td><input type="number" id="number2"></td>
+            </tr>
+        </table>
+            <div style="padding-left: 50px;">
+                <input type="button" value="Cộng">
+                <input type="button" value="Trừ">
+                <input type="button" value="Nhân">
+                <input type="button" value="Chia">
+            </div>
+        
+        <table>
+            <td><label for="result">Kết quả</label></td>
+            <td style="padding-left: 35px;"><input type="text" id="result" readonly></td>
+        </table>
+    </form>
+</body>
+</html>

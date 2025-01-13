@@ -1,0 +1,537 @@
+ĐỀ CK1 2023-2024
+Giá trị truyền vào onclick là tên hàm, không được ghi tên file trong onclick (code bằng javascript chứ không phải php) 
+
+<button type="submit" onclick="Nếu có, không cần ghi onclick cũng được">TênHiểnThịTrênButton</button>  ==> Khi nhấn thì sẽ thực thi action của form, nếu có onclick thì sẽ thực thi hàm xử lý ở onclick rồi mới thực thi action của form
+
+<input type="submit" name="submit" value="tên hiển thị của button" onclick="nếu có" /> ==> Khi nhấn thì sẽ thực thi action của form, nếu có onclick thì sẽ thực thi hàm xử lý ở onclick rồi mới thực thi action của form
+
+<input type="button" name="gì đó" value="Tên của nút" onclick="myFunction()" />
+
+$_POST['username'] nháy đơn hoặc $_POST["username"] nháy kép đều được
+
+Lưu ý khi dùng nháy đơn và nháy kép trong php và javascript:
+	const str1 = 'He said, "Hello!"'; // Đúng
+	const str2 = "It's a nice day.";  // Đúng
+	const str3 = 'It\'s a nice day.'; // Đúng, dùng escape
+
+[COMBOBOX] Để lấy value hoặc text hiển thị của combobox thì có các cách sau:
+Javascript:
+	-để lấy value của option được chọn trong combobox thì dùng .value
+		document.getElementById('colors').value;
+	-để lấy text của option được chọn trong combobox thì dùng selectedIndex và text
+		document.getElementById('colors').options[document.getElementById('colors').selectedIndex].text;
+jQuery:
+	-Lấy value của option được chọn thì dùng hàm val()
+		$('#colors').val();
+	-Lấy text của option được chọn thì dùng hàm text() kết hợp với option:selected
+		$('#colors option:selected').text();
+Siêu biến toàn cục ($_GET, $_POST):
+	VD: $_POST["colors"]; là lấy được value của option được chọn, nếu option được chọn không có value thì sẽ lấy text của option đó
+==================================================
+Câu 1: Thành phần nào cũng nên đặt id để có thể sử dụng javascript hoặc jquery cho nhanh
+
+File Cau1.html
+
+<h3>Thêm xe</h3>
+<form method="GET" action="cau1.php">
+	Mã xe <input type="text" id="txtMaXe" name="maxe" placeholder="51E-xxx.xx" />
+	Tên xe <input type="text" id="txtTenXe" name="tenxe" placeholder="Forester" />
+	Hãng xe <input type="text" id="txtHangXe" name="hangxe" placeholder="Subaru" />
+	Số chỗ <input type="number" id="txtSoCho" name="socho" placeholder="5" />
+	Năm sản xuất <input type="number" id="txtNSX" name="namsanxuat" placeholder="2022" />
+	Đơn giá thuê <input type="number" id="dongia" name="dongiathue" placeholder="1000000" />
+	<button type="submit">Thêm</button>
+</form>
+
+File cau1.php 
+//xử lý sự kiện khi nhấn nút Thêm
+<?php
+	$strsql = "INSERT INTO XE VALUES ('$_GET["maxe"]', 
+								'$_GET["tenxe"]', 
+								'$_GET["hangxe"]', 
+								'$_GET["socho"]', 
+								'$_GET["namsanxuat"]', 
+								$_GET["dongiathue"], 
+								0)";
+	$result = mysqli_query($conn, $strsql);
+?>
+
+==================================================
+Câu 2: Thành phần nào cũng nên đặt id để có thể sử dụng javascript hoặc jquery cho nhanh
+
+File Cau2.html
+
+<h3>Thông tin trả xe</h3>
+<form method="POST" action="cau2.php">
+Họ tên khách hàng //viết code php để tạo và load dữ liệu vào combobox này
+Số xe <input type="text" id="txtSoXe" name="soxe" placeholder="51H-xxx.xx" />
+Ngày thuê <input type="date" id="txtNgayThue" name="ngaythue" placeholder="10/12/2023" />
+Ngày trả <input type="date" id="txtNgayTra" name="ngaytra" placeholder="12/12/2023" />
+<button type="submit">Trả xe</button>
+</form>
+
+//Load dữ liệu từ CSDL vào combobox
+File loadcomboboxCau2.php
+<?php
+	$strsql = "SELECT MAKH, TENKH FROM KHACHHANG";
+	$result = mysqli_query($conn, $strsql);
+	$str = "<select id="hotenCombobox" name="hotenCombobox">";
+	while($row=mysqli_fetch_array($result)){
+		$str.="<option value=" .$row["MAKH"] .">" .$row[TENKH] ."</option>";
+	}
+	$str.="</select>";
+	echo $str;
+?>
+
+//xử lý sự kiện khi nhấn nút Trả xe
+cau2.php
+<?php
+	//Lấy đơn giá thuê của xe
+	$strsql1 = "SELECT DGTHUE FROM XE WHERE SOXE = '$_POST["soxe"]' ";
+	$result1 = mysqli_query($conn, $strsql1);
+	$row = mysqli_fetch_array($result1);
+	$dongiathue = $row["DGTHUE"];
+
+	//Cập nhật ngày trả và tính tiền giá thuê
+	$ngaytra = $_POST["ngaytra"];
+	$ngaythue = $_POST["ngaythue"];
+
+	if ($ngaytra === $ngaythue) {
+		$songaythue = 1;
+	} 
+	else{
+    		$songaythue = $ngaytra - $ngaythue;
+   	 }
+	$strsql2 = "UPDATE THUE 
+			SET NGAYTRA = '$_POST["ngaytra"]', GIATHUE = $songaythue * $dongiathue" 
+			WHERE MAKH = '$_POST["hotenCombobox"]';
+	$result = mysqli_query($conn, $strsql2);
+?>
+
+==================================================
+Câu 3: Thành phần nào cũng nên đặt id để có thể sử dụng javascript hoặc jquery cho nhanh
+
+File cau3.html
+
+<h3>Thuê xe</h3>
+Họ tên khách hàng //viết code php để load từ csdl vào combobox
+Ngày thuê xe <input type="date" id="txtNgayThueXe" name="ngaythuexe" placeholder="15/12/2023" />
+Danh sách các xe chưa thuê //viết code php để load từ csdl vào bảng này
+Danh sách các xe đang thuê //viết code xử lý ở dưới dây
+
+File loadComboboxCau3.php
+
+<?php
+	$strsql = "SELECT MAKH, TENKH FROM KHACHHANG";
+	$result = mysqli_query($conn, $strsql);
+	$str = "<select id="hotenCombobox" name="hotenCombobox">";
+	while($row = mysqli_fetch_array($result)){
+		$str .= "<option value=" .$row["MAKH"] .">" .$row["TENKH"] ."</option>";
+	}
+	$str .= "</select>";
+	echo $str;
+?>
+
+File loadTableCacXeChuaThue.php
+
+<?php
+	$str = "SELECT * FROM XE WHERE TINHTRANG = 0";
+	$result = mysqli_query($conn, $str);
+	echo "<table id = "CacXeChuaThueTable">";
+	echo "<tr><th>Số xe</th><th>Tên xe</th><th>Hãng xe</th><th>Năm sản xuất</th><th>Số chỗ</th><th>Đơn giá thuê</th><th>Chọn thuê</th>";
+	while($row = mysqli_fetch_array($result)){
+		echo "<tr>";
+		echo "<td>" .$row["SOXE"] ."</td>";
+		echo "<td>" .$row["TENXE"] ."</td>";
+		echo "<td>" .$row["HANGXE"] ."</td>";
+		echo "<td>" .$row["NAMSX"] ."</td>";
+		echo "<td>" .$row["SOCHO"] ."</td>";
+		echo "<td>" .$row["DGTHUE"] ."</td>";
+		echo "<td>" ."<input type='button' id= 'thueButton' name= 'thueButton' value='Thuê' onclick='XuLyNutThue(this)' />" ."</td>";
+	}
+	echo "</table>";
+?>
+
+File XuLyNutThue.js (Lấy thông tin ở dòng được chọn và xử lý Ajax để gửi đến server để thao tác với csdl)
+<script>
+	function XuLyNutThue(button){
+		//Lấy dòng chứa nút Thuê được chọn
+		var row = button.closest("tr"); //nếu không có onclick trên thẻ input thì dùng var row = $(this).closest("tr");
+		//Lấy tất cả các ô trong dòng đó
+		var cells = row.getElementsByTagName("td");
+		//Lấy dữ liệu từ các ô này
+		var soxe = cells[0].innerText;
+		var tenxe = cells[1].innerText;
+		var hangxe = cells[2].innerText;
+		var namsanxuat = cells[3].innerText;
+		var socho = cells[4].innerText;
+		var dongiathue = cells[5].innerText;
+
+		//Lấy mã khách hàng từ combobox
+		var makhachang = $('#hotenCombobox').val();
+		//Lấy ngày thuê xe từ thẻ input
+		var ngaythuexe = $('#txtNgayThueXe').val();
+
+		// $("#thueButton").click(function(){});
+
+		// Gửi dữ liệu đến server qua AJAX
+		$.ajax({
+			url: "XuLyNutThue.php",
+			type: "POST",
+			data: {
+				//bên trái là tên biến được gửi đến server, bên phải là các biến có giá trị được lấy nhờ javascript và jquery đã được xử lý phía trên
+				soxe: soxe,
+				tenxe: tenxe,
+				hangxe: hangxe,
+				namsanxuat: namsanxuat,
+				socho: socho,
+				dongiathue: dongiathue,
+				makhachhang: makhachhang,
+				ngaythuexe: ngaythuexe
+			},
+			success: function(response){
+				//Chuyển đổi phản hồi từ server thành đối tượng JSON
+				var data = JSON.parse(response);
+				//Kiểm tra nếu bảng CacXeDangThueTable chưa tồn tại
+				if($("#CacXeDangThueTable").length ===0){
+					//Tạo bảng nếu chưa có
+					var table = $("<table>").attr("id", "CacXeDangThueTable");
+					var header = $("<thead>").append("<tr><th>Số xe</th><th>Tên xe</th><th>Hãng xe</th><th>Năm sản xuất</th><th>Số chỗ</th><th>Đơn giá thuê</th><th>Chọn thuê</th></tr>");
+					table.append(header);
+					$("body").append(table);
+				}
+				//Thêm một dòng mới vào bảng này
+				var newRow = $("<tr>").append(
+					$("<td>").text(data.soxe),
+					$("<td>").text(data.tenxe),
+					$("<td>").text(data.hangxe);
+					$("<td>").text(data.namsanxuat),
+					$("<td>").text(data.socho),
+					$("<td>").text(data.dongiathue),
+					$("<td>").append("<input type='button' id= 'khongthueButton' name= 'khongthueButton' value='Không Thuê' onclick='XuLyNutKhongThue(this)' />")
+				);
+				//Thêm vào bảng Các Xe Đang Thuê
+				$("#CacXeDangThueTable").append(newRow);
+				//Xoá dòng đó ra khỏi bảng Các Xe Chưa Thuê
+				row.remove();
+			}
+		});
+	}
+</script>
+
+[SERVER] File XuLyNutThue.php
+<?php
+	if($_SERVER['REQUEST_METHOD'] == 'POST'){
+		
+		// Nhận dữ liệu từ client
+    		$tenxe = $_POST['tenxe'];
+    		$hangxe = $_POST['hangxe'];
+    		$namsanxuat = $_POST['namsanxuat'];
+    		$socho = $_POST['socho'];
+    		$dongiathue = $_POST['dongiathue'];
+		$soxe = $_POST["soxe"];
+		$makhachhang = $_POST["makhachhang"];
+		$ngaythuexe = $_POST["ngaythuexe"];
+
+		//Lưu xe được chọn vào phần thuê xe của khách hàng trong CSDL
+		//giả sử khoá chính (MAT) của bảng THUE được tăng tự động, NGAYTRA và GIATHUE không được nhắc trong câu insert thì có giá trị là Null trong csdl
+		$strsql1 = "INSERT INTO THUE (MAKH, SOXE, NGAYTHUE) VALUES ('$makhachhang', '$soxe', '$ngaythuexe')";
+		mysqli_query($conn, $strsql1);
+
+		//Cập nhật lại trạng thái của xe này trong csdl thành Đang cho thuê TINHTRANG = 1
+		$strsql2 = "UPDATE XE SET TINHTRANG = 1 WHERE SOXE = '$soxe' ";
+		mysqli_query($conn, $strsql2);
+
+    		// Trả về các dữ liệu dưới dạng JSON ==> để thêm dòng dữ liệu này vào bảng Xe Đang Thuê
+    		$response = array(
+        		'soxe' => $soxe,
+       			 'tenxe' => $tenxe,
+        		'hangxe' => $hangxe,
+        		'namsanxuat' => $namsanxuat,
+        		'socho' => $socho,
+        		'dongiathue' => $dongiathue
+    		);
+
+    		// Trả về dữ liệu dưới dạng JSON
+    		echo json_encode($response);
+	}
+?>
+
+file XuLyNutKhongThue.js (Lấy thông tin ở dòng được chọn và xử lý Ajax để gửi đến server để thao tác với csdl)
+<script>
+	function XuLyNutKhongThue(button){
+		//Lấy dòng chứa nút KhôngThuê được chọn
+		var row = button.closest("tr"); //nếu không có onclick trên thẻ input thì dùng var row = $(this).closest("tr");
+		//Lấy tất cả các ô trong dòng đó
+		var cells = row.getElementsByTagName("td");
+		//Lấy dữ liệu từ các ô này
+		var soxe = cells[0].innerText;
+		var tenxe = cells[1].innerText;
+		var hangxe = cells[2].innerText;
+		var namsanxuat = cells[3].innerText;
+		var socho = cells[4].innerText;
+		var dongiathue = cells[5].innerText;
+
+		//Lấy mã khách hàng từ combobox
+		var makhachang = $('#hotenCombobox').val();
+		//Lấy ngày thuê xe từ thẻ input
+		var ngaythuexe = $('#txtNgayThueXe').val();
+
+		// $("#thueButton").click(function(){});
+
+		// Gửi dữ liệu đến server qua AJAX
+		$.ajax({
+			url: "XuLyNutKhongThue.php",
+			type: "POST",
+			data: {
+				//bên trái là tên biến được gửi đến server, bên phải là các biến có giá trị được lấy nhờ javascript và jquery đã được xử lý phía trên
+				soxe: soxe,
+				tenxe: tenxe,
+				hangxe: hangxe,
+				namsanxuat: namsanxuat,
+				socho: socho,
+				dongiathue: dongiathue,
+				makhachhang: makhachhang,
+				ngaythuexe: ngaythuexe
+			},
+			success: function(response){
+				//Chuyển đổi phản hồi từ server thành đối tượng JSON
+				var data = JSON.parse(response);
+				//Kiểm tra nếu bảng CacXeChuaThueTable chưa tồn tại
+				if($("#CacXeChuaThueTable").length ===0){
+					//Tạo bảng nếu chưa có
+					var table = $("<table>").attr("id", "CacXeDangThueTable");
+					var header = $("<thead>").append("<tr><th>Số xe</th><th>Tên xe</th><th>Hãng xe</th><th>Năm sản xuất</th><th>Số chỗ</th><th>Đơn giá thuê</th><th>Chọn thuê</th></tr>");
+					table.append(header);
+					$("body").append(table);
+				}
+				//Thêm một dòng mới vào bảng này
+				var newRow = $("<tr>").append(
+					$("<td>").text(data.soxe),
+					$("<td>").text(data.tenxe),
+					$("<td>").text(data.hangxe);
+					$("<td>").text(data.namsanxuat),
+					$("<td>").text(data.socho),
+					$("<td>").text(data.dongiathue),
+					$("<td>").append("<input type='button' id= 'thueButton' name= 'thueButton' value='Thuê' onclick='XuLyNutThue(this)' />")
+				);
+				//Thêm vào bảng Các Xe Chưa Thuê
+				$("#CacXeChuaThueTable").append(newRow);
+				//Xoá dòng đó ra khỏi bảng Các Xe Đang Thuê
+				row.remove();
+			}
+		});
+	}
+</script>
+
+[SERVER] file XuLyNutKhongThue.php
+<?php
+	if($_SERVER['REQUEST_METHOD'] == 'POST'){
+		// Nhận dữ liệu từ client
+    		$tenxe = $_POST['tenxe'];
+    		$hangxe = $_POST['hangxe'];
+    		$namsanxuat = $_POST['namsanxuat'];
+    		$socho = $_POST['socho'];
+    		$dongiathue = $_POST['dongiathue'];
+		$soxe = $_POST["soxe"];
+		$makhachhang = $_POST["makhachhang"];
+		$ngaythuexe = $_POST["ngaythuexe"];
+
+		//Lấy Mã Thuê
+		$strsql1 = "SELECT MAT FROM THUE WHERE MAKH = '$makhachhang' AND SOXE = '$soxe' AND NGAYTHUE = '$ngaythuexe' ";
+		$result1 = mysqli_query($conn, $strsql1);
+		$row1 = mysqli_fetch_array($result1);
+		$mathue = $row1["MAT"];
+
+		//Xoá xe được chọn ra khỏi phần thuê xe của khách hàng trong CSDL
+		$strsql2 = "DELETE FROM THUE WHERE MAT = '$mathue' ";
+		mysqli_query($conn, $strsql2);
+
+		//Cập nhật lại trạng thái của xe này trong csdl thành Không đang thuê TINHTRANG = 0
+		$strsql3 = "UPDATE XE SET TINHTRANG = 0 WHERE SOXE = '$soxe' ";
+		mysqli_query($conn, $strsql3);
+
+    		// Trả về các dữ liệu dưới dạng JSON ==> để thêm dòng dữ liệu này vào bảng Xe Chưa Thuê
+    		$response = array(
+        		'soxe' => $soxe,
+       			 'tenxe' => $tenxe,
+        		'hangxe' => $hangxe,
+        		'namsanxuat' => $namsanxuat,
+        		'socho' => $socho,
+        		'dongiathue' => $dongiathue
+    		);
+
+    		// Trả về dữ liệu dưới dạng JSON
+    		echo json_encode($response);
+	}
+?>
+
+==================================================
+Câu 4: Thành phần nào cũng nên đặt id để có thể sử dụng javascript hoặc jquery cho nhanh
+
+File Cau4.html
+
+Chọn ngày <input type="date" id="ngay" name="ngay"  />
+<div id="danhsachTable"></div>
+
+File Cau4.js
+
+<script>
+	$(document).ready(function() {
+		var ngayInput = "";
+		$("#ngay").on("keydown", function(event){
+			if(event.key === "Enter"){
+				//event.preventDefault();
+				ngayInput = $(this).val();
+			}
+		}
+		//Gửi yêu cầu Ajax đến server
+		$.ajax({
+			url: "Cau4.php",
+			type: "POST",
+			data: {ngay: ngayInput},
+			success: function(response){
+				//xử lý phản hồi từ server: Hiển thị bảng như đề yêu cầu
+				var str = "";
+				str += "<table>";
+				str += "<tr><th>STT</th><th>Họ tên khách hàng</th><th>Số xe</th><th>Tên xe</th></tr>";
+				//kết quả là một object json ==> dùng loop
+				$.each (response, function(key, item){
+					str += "<tr><td>";
+					str += item["STT"];
+					str += "</td>";
+					str += "<td>";
+					str += item["hoten"];
+					str += "</td>";
+					str += "<td>";
+					str += item["soxe"];
+					str += "</td>";
+					str += "<td>";
+					str += item["tenxe"];
+					str += "</td></tr>";
+				});
+				str += "</table">;
+				$("#danhsachTable").html(str);
+			}
+		});
+	});
+</script>
+
+[SERVER] File Cau4.php
+<?php
+	if(isset($_POST["ngay"])){
+		$strsql = "SELECT TENKH, SOXE, TENXE 
+				FROM THUE T JOIN XE X ON T.SOXE=X.SOXE JOIN KHACHHANG K ON T.MAKH=K.MAKH 
+				WHERE NGAYTHUE = '$_POST["ngay"]' AND NGAYTRA IS NULL";
+		$result = mysqli_query($conn, $strsql);
+		$response = array();
+		if(mysqli_num_rows($result) > 0){
+			$cnt = 0;
+			while ($row = mysqli_fetch_array($result)){
+				$cnt += 1;
+				$response[ ] = array(
+					'STT' => $cnt,
+					'hoten' => $row["TENKH"],
+					'soxe' => $row["SOXE"],
+					'tenxe' => $row["TENXE"]
+				);
+			}
+		}
+    		// Trả về dữ liệu dưới dạng JSON
+    		echo json_encode($response);
+	}
+?>
+
+==================================================
+Câu 5: Thành phần nào cũng nên đặt id để có thể sử dụng javascript hoặc jquery cho nhanh
+
+File Cau5.html
+
+Từ ngày <input type="date" id="tungay" name="tungay" />
+Đến ngày <input type="date" id="denngay" name="denngay" />
+Họ tên khách hàng //load từ csdl vào combobox
+<div id="danhsachTable"></div>
+
+File loadComboboxCau5.php
+
+<?php
+	$strsql = "SELECT MAKH, TENKH FROM KHACHHANG";
+	$result = mysqli_query($conn, $strsql);
+	$str = "<select id="hotenCombobox" name="hotenCombobox" onchange="XuLyOnChangeEvent()">";
+	while($row = mysqli_fetch_array($result)){
+		$str .= "<option value=" .$row["MAKH"] .">" .$row["TENKH"] ."</option>";
+	}
+	$str .= "</select>";
+	echo $str;
+?>
+
+File XuLyOnChangeEvent.js
+<script>
+	function XuLyOnChangeEvent(){
+		// $("#hotenCombobox").change(function(){});
+		var hoten = $("#hotenCombobox").val();
+		var tungay = $("#tungay").val();
+		var denngay = $("#denngay").val();
+		
+		//Gửi yêu cầu Ajax đến server để thao tác với csdl
+		$.ajax({
+			url: "Cau5.php",
+			type: "POST",
+			data: {
+				hoten: hoten,
+				tungay: tungay,
+				denngay: denngay
+			},
+			success: function(response){
+				//xử lý phản hồi từ server: Hiển thị bảng như đề yêu cầu
+				var str = "";
+				str += "<table>";
+				str += "<tr><th>STT</th><th>Số xe</th><th>Tên xe</th><th>Giá thuê</th></tr>";
+				//kết quả là một object json ==> dùng loop
+				$.each (response, function(key, item){
+					str += "<tr><td>";
+					str += item["STT"];
+					str += "</td>";
+					str += "<td>";
+					str += item["soxe"];
+					str += "</td>";
+					str += "<td>";
+					str += item["tenxe"];
+					str += "</td>";
+					str += "<td>";
+					str += item["giathue"];
+					str += "</td></tr>";
+				});
+				str += "</table">;
+				$("#danhsachTable").html(str);
+			}
+		});
+	}
+</script>
+
+[SERVER] File Cau5.php
+
+<?php
+	$hoten = $_POST["hoten"];
+	$tungay = $_POST["tungay"];
+	$denngay = $_POST["denngay"];
+	$strsql = "SELECT SOXE, TENXE, GIATHUE 
+			FROM THUE T JOIN XE X ON T.SOXE=X.SOXE 
+			WHERE MAKH='$hoten' AND NGAYTRA >= '$tungay' AND NGAYTRA <= '$denngay' ";
+	$result = mysqli_query($conn, $strsql);
+	$response = array();
+	if (mysqli_num_rows($result) > 0){
+		$cnt = 0;
+		while($row = mysqli_fetch_array($result)){
+			cnt += 1;
+			$response [ ] = array(
+				"STT" => cnt;
+				"soxe" => $row["SOXE"];
+				"tenxe" => $row["TENXE"];
+				"giathue" => $row["GIATHUE"];
+			);
+		}
+	}
+	//Trả về dữ liệu dưới dạng JSON
+	echo json_encode($response);
+?>

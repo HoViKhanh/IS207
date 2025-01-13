@@ -1,0 +1,492 @@
+Giải đề CK1 2022-2023
+
+Câu 1:
+
+file Cau1.html
+<form id="form1" method="POST" action="cau1.php">
+	Mã khách hàng <input type="text" id="txtmakhachhang" name="makhachhang" placeholder="Mã khách hàng" />
+	Tên khách hàng <input type="text" id="txttenkhachhang" name="tenkhachhang" placeholder="Tên khách hàng" />
+	Số điện thoại <input type="text" id="txtsodienthoai" name="sodienthoai" placeholder="Số điện thoại" />
+	Căn cước công nhân <input type="text" id="txtcccn" name="cccn" placeholder="Căn cước công nhân" />
+	<button type="submit">Thêm</button>
+</form>
+
+file cau1.php
+<?php
+	$strsql = "INSERT INTO KHACHHANG VALUE ('$_POST["makhachhang"]', 
+												'$_POST["tenkhachhang"]', 
+												'$_POST["sodienthoai"]', 
+												'$_POST["cccn"]')";
+	mysqli_query($conn, $strsql);
+?>
+
+=====================================
+Câu 2:
+
+file cau2.html
+<form id="form2" method="POST" action="cau2,php">
+	Tên khách hàng //viết code load dữ liệu vào combobox
+	Mã hoá đơn <input type="text" id="txtmahoadon" name="mahoadon" placeholder="Mã hoá đơn" />
+	Tên hoá đơn <input type="text" id="txttenhoadon" name="tenhoadon" placeholder="Tên hoá đơn" />
+	Tổng tiền <input type="number" id="numtongtien" name="tongtien" placeholder="Tổng tiền" />
+	<button type="submit">Thêm</button>
+</form>
+
+file loadCombobox.php
+<?php
+	$strsql = "SELECT MAKH, TENKH FROM KHACHHANG";
+	$result = mysqli_query($conn, $strsql);
+	$str = "<select name="hotenCombobox" id="hotenCombobox">";
+	while($row = mysql_fetch_array($result)){
+		$str .= "<option value=" .$row["MAKH"] .">" .$row["TENKH"] ."</option>";
+	}
+	$str .= "</select>";
+	echo $str;
+?>
+
+file cau2.php
+<?php
+	$strsql = "INSERT INTO HOADON VALUES ('$_POST["mahoadon"]', 
+											'$_POST["tenhoadon"]', 
+											'$_POST["hotenCombobox"]', 
+											'$_POST["tongtien"]')";
+	mysqli_query($conn, $strsql);
+?>
+
+========================================
+Câu 3:
+
+file cau3.html
+
+Mã hoá đơn //viết code php để load từ csdl vào combobox
+Danh sách các phòng còn trống //viết code php để load từ csdl vào bảng này
+Danh sách các phòng đã thêm //viết code xử lý ở dưới dây
+
+file loadComboboxCau3.php
+
+<?php
+	$strsql = "SELECT MAHD FROM HOADON";
+	$result = mysqli_query($conn, $strsql);
+	$str = "<select id="mahoadonCombobox" name="mahoadonCombobox">";
+	while($row = mysqli_fetch_array($result)){
+		$str .= "<option value=" .$row["MAHD"] .">" .$row["MAHD"] ."</option>";
+	}
+	$str .= "</select>";
+	echo $str;
+?>
+
+file loadTableCacPhongConTrong.php
+
+<?php
+	$str = "SELECT * FROM PHONG WHERE TINHTRANG = 'Còn trống' '";
+	$result = mysqli_query($conn, $str);
+	echo "<table id = "CacPhongConTrongTable">";
+	echo "<tr><th>STT</th><th>Mã phòng</th><th>Tên phòng</th><th>Chức năng</th>";
+	$cnt = 0;
+	while($row = mysqli_fetch_array($result)){
+		$cnt += 1;
+		echo "<tr>";
+		echo "<td>" .$cnt ."</td>";
+		echo "<td>" .$row["MAPHONG"] ."</td>";
+		echo "<td>" .$row["LOAIPHONG"] ."</td>";
+		echo "<td>" ."<input type='button' id= 'themButton' name= 'themButton' value='Thêm' onclick='XuLyNutThem(this)' />" ."</td>";
+	}
+	echo "</table>";
+?>
+
+file XuLyNutThem.js (Lấy thông tin ở dòng được chọn và xử lý Ajax để gửi đến server để thao tác với csdl)
+<script>
+	function XuLyNutThem(button){
+		//Lấy dòng chứa nút Thêm được chọn
+		var row = button.closest("tr"); //nếu không có onclick trên thẻ input thì dùng var row = $(this).closest("tr");
+		//Lấy tất cả các ô trong dòng đó
+		var cells = row.getElementsByTagName("td");
+		//Lấy dữ liệu từ các ô này
+		var stt = cells[0].innerText;
+		var maphong = cells[1].innerText;
+		var tenphong = cells[2].innerText;
+
+		//Lấy mã hoá đơn từ combobox
+		var mahoadon = $('#mahoadonCombobox').val();
+
+		// $("#thueButton").click(function(){});
+
+		// Gửi dữ liệu đến server qua AJAX
+		$.ajax({
+			url: "XuLyNutThem.php",
+			type: "POST",
+			data: {
+				//bên trái là tên biến được gửi đến server, bên phải là các biến có giá trị được lấy nhờ javascript và jquery đã được xử lý phía trên
+				stt: stt,
+				maphong: maphong,
+				tenphong: tenphong,
+				mahoadon: mahoadon
+			},
+			success: function(response){
+				//Chuyển đổi phản hồi từ server thành đối tượng JSON
+				var data = JSON.parse(response);
+				//Kiểm tra nếu bảng CacPhongDaThemTable chưa tồn tại
+				if($("#CacPhongDaThemTable").length ===0){
+					//Tạo bảng nếu chưa có
+					var table = $("<table>").attr("id", "CacPhongDaThemTable");
+					var header = $("<thead>").append("<tr><th>STT</th><th>Mã phòng</th><th>Tên phòng</th><th>Chức năng</th></tr>");
+					table.append(header);
+					$("body").append(table);
+				}
+				//Thêm một dòng mới vào bảng này
+				var newRow = $("<tr>").append(
+					$("<td>").text(data.stt),
+					$("<td>").text(data.maphong),
+					$("<td>").text(data.tenphong);
+					$("<td>").append("<input type='button' id= 'xoaButton' name= 'xoaButton' value='Xoá' onclick='XuLyNutXoa(this)' />")
+				);
+				//Thêm vào bảng CacPhongDaThemTable
+				$("#CacPhongDaThemTable").append(newRow);
+				//Xoá dòng đó ra khỏi bảng CacPhongConTrongTable
+				row.remove();
+			}
+		});
+	}
+</script>
+
+[SERVER] file XuLyNutThemphp
+<?php
+	if($_SERVER['REQUEST_METHOD'] == 'POST'){
+		// Nhận dữ liệu từ client
+    		$stt = $_POST['stt'];
+    		$maphong = $_POST['maphong'];
+    		$tenphong = $_POST['tenphong'];
+    		$mahoadon = $_POST['mahoadon'];
+
+		//Lưu phòng được chọn vào phần thuê phòng trong CSDL
+		//NGAYTRA, NGAYTHUE, GIATHUE không được nhắc trong câu insert thì có giá trị là Null trong csdl
+		$strsql1 = "INSERT INTO THUE (MAHD, MAPHONG) VALUES ('$mahoadon', '$maphong')";
+		mysqli_query($conn, $strsql1);
+
+		//Cập nhật lại trạng thái của phòng này trong csdl thành Đang cho thuê TINHTRANG = "Đang cho thuê"
+		$strsql2 = "UPDATE PHONG SET TINHTRANG = "Đang cho thuê" WHERE MAPHONG = '$maphong' ";
+		mysqli_query($conn, $strsql2);
+
+    		// Trả về các dữ liệu dưới dạng JSON ==> để thêm dòng dữ liệu này vào bảng Các Phòng Đã Thêm
+    		$response = array(
+        		'stt' => $stt,
+       			 'maphong' => $maphong,
+        		'tenphong' => $tenphong,
+        		'mahoadon' => $mahoadon
+    		);
+
+    		// Trả về dữ liệu dưới dạng JSON
+    		echo json_encode($response);
+	}
+?>
+
+-----------
+file XuLyNutXoa.js (Lấy thông tin ở dòng được chọn và xử lý Ajax để gửi đến server để thao tác với csdl)
+<script>
+	function XuLyNutXoa(button){
+		//Lấy dòng chứa nút Xoá được chọn
+		var row = button.closest("tr"); //nếu không có onclick trên thẻ input thì dùng var row = $(this).closest("tr");
+		//Lấy tất cả các ô trong dòng đó
+		var cells = row.getElementsByTagName("td");
+		//Lấy dữ liệu từ các ô này
+		var stt = cells[0].innerText;
+		var maphong = cells[1].innerText;
+		var tenphong = cells[2].innerText;
+
+		//Lấy mã hoá đơn từ combobox
+		var mahoadon = $('#mahoadonCombobox').val();
+
+		// $("#thueButton").click(function(){});
+
+		// Gửi dữ liệu đến server qua AJAX
+		$.ajax({
+			url: "XuLyNutXoa.php",
+			type: "POST",
+			data: {
+				//bên trái là tên biến được gửi đến server, bên phải là các biến có giá trị được lấy nhờ javascript và jquery đã được xử lý phía trên
+				stt: stt,
+				maphong: maphong,
+				tenphong: tenphong,
+				mahoadon: mahoadon
+			},
+			success: function(response){
+				//Chuyển đổi phản hồi từ server thành đối tượng JSON
+				var data = JSON.parse(response);
+				//Kiểm tra nếu bảng CacPhongConTrongTable chưa tồn tại
+				if($("#CacPhongConTrongTable").length ===0){
+					//Tạo bảng nếu chưa có
+					var table = $("<table>").attr("id", "CacPhongConTrongTable");
+					var header = $("<thead>").append("<tr><th>STT</th><th>Mã phòng</th><th>Tên phòng</th><th>Chức năng</th></tr>");
+					table.append(header);
+					$("body").append(table);
+				}
+				//Thêm một dòng mới vào bảng này
+				var newRow = $("<tr>").append(
+					$("<td>").text(data.stt),
+					$("<td>").text(data.maphong),
+					$("<td>").text(data.tenphong);
+					$("<td>").append("<input type='button' id= 'themButton' name= 'themButton' value='Thêm' onclick='XuLyNutThem(this)' />")
+				);
+				//Thêm vào bảng CacPhongConTrongTable
+				$("#CacPhongConTrongTable").append(newRow);
+				//Xoá dòng đó ra khỏi bảng Các Phòng Đã Thêm
+				row.remove();
+			}
+		});
+	}
+</script>
+
+[SERVER] file XuLyNutXoa.php
+<?php
+	if($_SERVER['REQUEST_METHOD'] == 'POST'){
+		// Nhận dữ liệu từ client
+    		$stt = $_POST['stt'];
+    		$maphong = $_POST['maphong'];
+    		$tenphong = $_POST['tenphong'];
+    		$mahoadon = $_POST['mahoadon'];
+
+		//Xoá phòng được chọn ra khỏi phần thuê phòng trong CSDL
+		$strsql1 = "DELETE FROM THUE WHERE MAHD = '$mahoadon' AND MAPHONG = '$maphong' ";
+		mysqli_query($conn, $strsql1);
+
+		//Cập nhật lại trạng thái của phòng này trong csdl thành Còn Trống TINHTRANG = "Còn trống"
+		$strsql2 = "UPDATE PHONG SET TINHTRANG = "Còn trống" WHERE MAPHONG = '$maphong' ";
+		mysqli_query($conn, $strsql2);
+
+    		// Trả về các dữ liệu dưới dạng JSON ==> để thêm dòng dữ liệu này vào bảng CacPhongConTrongTable
+    		$response = array(
+        		'stt' => $stt,
+       			 'maphong' => $maphong,
+        		'tenphong' => $tenphong,
+        		'mahoadon' => $mahoadon
+    		);
+
+    		// Trả về dữ liệu dưới dạng JSON
+    		echo json_encode($response);
+	}
+?>
+
+==================================================
+Câu 4: Thành phần nào cũng nên đặt id để có thể sử dụng javascript hoặc jquery cho nhanh
+
+file cau4.html
+
+Số lượng khách hàng <input type="number" id="soluong" name="soluong" />
+<h3 id="displayText">khách hàng có số tiền thuê nhiều nhất</h3>
+<script>
+        $(document).ready(function() {
+            $("#soluong").on("input", function() {
+                const number = $(this).val();
+                $("#displayText").text(number + " khách hàng có số tiền thuê nhiều nhất");
+            });
+        });
+</script>
+<div id="danhsachTable"></div> // dùng Ajax để hiển thị bảng này
+
+
+file xulysukienEnter.js
+    <script>
+        $(document).ready(function() {
+            $("#soluong").on("keydown", function(event) {
+                if (event.key === "Enter") {
+                    const soluong = $(this).val();
+                    $("#displayText").text(soluong + " khách hàng");
+
+			$.ajax({
+				url: "cau4.php",
+				type: "POST",
+				data: {soluong: soluong},
+				success: function(response){
+					//xử lý phản hồi từ server: Hiển thị bảng như đề yêu cầu
+					var str = "";
+					str += "<table>";
+					str += "<tr><th>STT</th><th>Mã khách hàng</th><th>Tên khách hàng</th><th>Tổng tiền thuê</th></tr>";
+					//kết quả là một object json ==> dùng loop
+					$.each (response, function(key, item){
+						str += "<tr><td>";
+						str += item["stt"];
+						str += "</td>";
+						str += "<td>";
+						str += item["makhachhang"];
+						str += "</td>";
+						str += "<td>";
+						str += item["tenkhachhang"];
+						str += "</td>";
+						str += "<td>";
+						str += item["tongtienthue"];
+						str += "</td></tr>";
+					});
+					str += "</table">;
+					$("#danhsachTable").html(str);
+				}
+			});
+                }
+            });
+        });
+    </script>
+
+[SERVER] file cau4.php
+<?php
+	if(isset($_POST["soluong"])){
+		$strsql = "SELECT MAKH, TENKH, TONGTIEN 
+				FROM THUE T JOIN HOADON H ON T.MAHD=H.MAHD JOIN KHACHHANG K ON H.MAKH=K.MAKH 
+				ORDER BY TONGTIEN DESC 
+				LIMIT $_POST["soluong"] ";
+		$result = mysqli_query($conn, $strsql);
+		$response = array();
+		if(mysqli_num_rows($result) > 0){
+			$cnt = 0;
+			while ($row = mysqli_fetch_array($result)){
+				$cnt += 1;
+				$response[ ] = array(
+					'stt' => $cnt,
+					'makhachhang' => $row["MAKH"],
+					'tenkhachhang' => $row["TENKH"],
+					'tongtienthue' => $row["TONGTIEN"]
+				);
+			}
+		}
+    		// Trả về dữ liệu dưới dạng JSON
+    		echo json_encode($response);
+	}
+?>
+
+==================================================
+Câu 5: Thành phần nào cũng nên đặt id để có thể sử dụng javascript hoặc jquery cho nhanh
+
+File cau5.html
+
+Tên khách hàng //viết code php để load từ csdl vào combobox
+Mã hoá đơn <div id="mahoadonContainer"></div> //viết code php load từ csdl vào combobox
+Danh sách các phòng trong hoá đơn <div id="danhsachphongTable"></div>
+
+File loadHoTenComboboxCau5.php
+<?php
+	$strsql = "SELECT MAKH, TENKH FROM KHACHHANG";
+	$result = mysqli_query($conn, $strsql);
+	$str = "<select id="hotenCombobox" name="hotenCombobox" onchange="XuLyOnChangeHoTenCombobox()">";
+	while($row = mysqli_fetch_array($result)){
+		$str .= "<option value=" .$row["MAKH"] .">" .$row["TENKH"] ."</option>";
+	}
+	$str .= "</select>";
+	echo $str;
+?>
+
+File XuLyOnChangeHoTenCombobox.js
+<script>
+	function XuLyOnChangeHoTenCombobox(){
+		// $("#hotenCombobox").change(function(){});
+		var makhachhang = $("#hotenCombobox").val();
+		
+		//Gửi yêu cầu Ajax đến server để thao tác với csdl
+		$.ajax({
+			url: "loadMaHoaDonCombobox.php",
+			type: "POST",
+			data: {makhachhang: makhachhang},
+			success: function(response){
+				//xử lý phản hồi từ server: Hiển thị combobox mã hoá đơn của khách hàng như đề yêu cầu
+				var str = "";
+				str += "<select id="mahoadonCombobox" name="mahoadonCombobox" onchange="XyLyMaHoaDonCombobox()">";
+				//kết quả là một object json ==> dùng loop
+				$.each (response, function(key, item){
+					str += "<option value=" + item["mahoadon"] + ">" + item["mahoadon"] + "</option>";
+				});
+				str += "</select">;
+				$("#mahoadonContainer").html(str);
+			}
+		});
+	}
+</script>
+
+file loadMaHoaDonCombobox.php
+<?php
+	if(isset(S_POST["makhachhang"]){
+		$strsql = "SELECT MAHD FROM HOADON WHERE MAKH = '$_POST["makhachhang"]' ";
+		$result = mysqli_query($conn, $strsql);
+		$response = array();
+		if(mysqli_num_rows($result) > 0){
+			while($row = mysqli_fetch_array($result)){
+				$response [ ] = array(
+					"mahoadon" => $row["MAHD"];
+				)
+			}
+		}
+		//Trả về dữ liệu dưới dạng JSON
+		echo json_encode($response);
+	}
+?>
+
+File XyLyMaHoaDonCombobox.js
+<script>
+	function XyLyMaHoaDonCombobox(){
+		// $("#mahoadonCombobox").change(function(){});
+		var makhachhang = $("#hotenCombobox").val();
+		var mahoadon = $("#mahoadonCombobox").val();
+		
+		//Gửi yêu cầu Ajax đến server để thao tác với csdl
+		$.ajax({
+			url: "LietKeDanhSachPhongCuaHoaDon.php",
+			type: "POST",
+			data: {
+				makhachhang: makhachhang,
+				mahoadon: mahoadon
+			},
+			success: function(response){
+				//xử lý phản hồi từ server: Hiển thị bảng như đề yêu cầu
+				var str = "";
+				str += "<table>";
+				str += "<tr><th>STT</th><th>Mã phòng</th><th>Loại phòng</th></tr>";
+				//kết quả là một object json ==> dùng loop
+				$.each (response, function(key, item){
+					str += "<tr><td>";
+					str += item["stt"];
+					str += "</td>";
+					str += "<td>";
+					str += item["maphong"];
+					str += "</td>";
+					str += "<td>";
+					str += item["loaiphong"];
+					str += "</td></tr>";
+				});
+				str += "</table">;
+				$("#danhsachphongTable").html(str);
+			}
+		});
+	}
+</script>
+
+[SERVER] File LietKeDanhSachPhongCuaHoaDon.php
+<?php
+	$makhachhang = $_POST["makhachhang"];
+	$mahoadon = $_POST["mahoadon"];
+	$strsql = "SELECT MAPHONG, LOAIPHONG 
+			FROM THUE T JOIN PHONG P ON T.MAPHONG=P.MAPHONG 
+			WHERE MAHD='$mahoadon' ";
+	$result = mysqli_query($conn, $strsql);
+	$response = array();
+	if (mysqli_num_rows($result) > 0){
+		$cnt = 0;
+		while($row = mysqli_fetch_array($result)){
+			cnt += 1;
+			$response [ ] = array(
+				"stt" => cnt;
+				"maphong" => $row["MAPHONG"];
+				"loaiphong" => $row["LOAIPHONG"];
+			);
+		}
+	}
+	//Trả về dữ liệu dưới dạng JSON
+	echo json_encode($response);
+?>
+
+
+
+
+
+
+
+
+
+
+
+
